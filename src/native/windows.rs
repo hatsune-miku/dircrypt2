@@ -69,9 +69,51 @@ pub struct Handle {
 pub struct Dir {
     handle: Handle,
     pub info: Info,
+    delete_access: bool,
 }
 
 impl Handle {
+    fn reopen(&self, access: u32) -> Result<Self> {
+        // An empty NT relative name reopens the same directory object. Win32
+        // ReOpenFile does not accept these traverse-only directory handles.
+        let empty = UnicodeString {
+            length: 0,
+            maximum_length: 0,
+            buffer: ptr::null(),
+        };
+        let object = ObjectAttributes {
+            length: size_of::<ObjectAttributes>() as u32,
+            root: self.raw(),
+            name: &empty,
+            attributes: 0,
+            security: ptr::null(),
+            qos: ptr::null(),
+        };
+        let mut status = IoStatus {
+            status: 0,
+            information: 0,
+        };
+        let mut raw = ptr::null_mut();
+        nt_retry(|| unsafe {
+            NtCreateFile(
+                &mut raw,
+                access | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+                &object,
+                &mut status,
+                ptr::null(),
+                0,
+                FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                1,
+                0x00200000 | 0x20 | 1,
+                ptr::null(),
+                0,
+            )
+        })
+        .context("Reopening a directory handle")?;
+        Ok(Self {
+            file: unsafe { File::from_raw_handle(raw) },
+        })
+    }
     fn raw(&self) -> HANDLE {
         self.file.as_raw_handle() as HANDLE
     }
@@ -156,7 +198,7 @@ impl Dir {
         let raw = unsafe {
             CreateFileW(
                 wide.as_ptr(),
-                FILE_LIST_DIRECTORY | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
+                FILE_TRAVERSE | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
                 FILE_SHARE_READ | FILE_SHARE_WRITE,
                 ptr::null(),
                 OPEN_EXISTING,
@@ -172,7 +214,11 @@ impl Dir {
         };
         let info = handle.info()?;
         ensure!(info.kind() == DIRECTORY, "Root must be a plain directory");
-        Ok(Arc::new(Self { handle, info }))
+        Ok(Arc::new(Self {
+            handle,
+            info,
+            delete_access: false,
+        }))
     }
     pub fn filesystem(&self) -> Result<String> {
         let mut name = [0u16; 256];
@@ -251,32 +297,44 @@ impl Dir {
         })
     }
     pub fn open_dir(&self, name: &Name) -> Result<Arc<Self>> {
-        let handle = self.child(name, FILE_LIST_DIRECTORY | DELETE, false, true)?;
+        let handle = self.child(name, FILE_TRAVERSE, false, true)?;
         let info = handle.info()?;
         ensure!(
             info.kind() == DIRECTORY,
             "Refusing to traverse reparse point {:?}",
             name.display()
         );
-        Ok(Arc::new(Self { handle, info }))
+        Ok(Arc::new(Self {
+            handle,
+            info,
+            delete_access: false,
+        }))
     }
     pub fn control_dir(&self, name: &Name, create: bool) -> Result<Arc<Self>> {
         // SQLite opens this directory by path. Pin its name until it closes.
         let handle = self.child_shared(
             name,
-            FILE_LIST_DIRECTORY | DELETE,
+            FILE_TRAVERSE | DELETE,
             create,
             true,
             FILE_SHARE_READ | FILE_SHARE_WRITE,
         )?;
         let info = handle.info()?;
         ensure!(info.kind() == DIRECTORY, "DCDATA must be a plain directory");
-        Ok(Arc::new(Self { handle, info }))
+        Ok(Arc::new(Self {
+            handle,
+            info,
+            delete_access: true,
+        }))
     }
     pub fn create_dir(&self, name: &Name) -> Result<Arc<Self>> {
-        let handle = self.child(name, FILE_LIST_DIRECTORY | DELETE, true, true)?;
+        let handle = self.child(name, FILE_TRAVERSE, true, true)?;
         let info = handle.info()?;
-        Ok(Arc::new(Self { handle, info }))
+        Ok(Arc::new(Self {
+            handle,
+            info,
+            delete_access: false,
+        }))
     }
     pub fn open_item(&self, name: &Name, header: bool) -> Result<Handle> {
         self.child(
@@ -292,16 +350,25 @@ impl Dir {
         )
     }
     pub fn remove_empty(&self) -> Result<()> {
-        self.handle.delete_empty()
+        if self.delete_access {
+            self.handle.delete_empty()
+        } else {
+            self.handle.reopen(DELETE)?.delete_empty()
+        }
     }
     pub fn entries(&self) -> Result<Vec<Entry>> {
+        // Windows 10/Server 2022 internally reopens rename destinations with a
+        // restrictive share mode. Persistent destination handles request only
+        // traverse/attributes, as required by FILE_RENAME_INFORMATION. Temporary
+        // list/delete handles close before child renames begin.
+        let scan = self.handle.reopen(FILE_LIST_DIRECTORY)?;
         let mut result = Vec::new();
         let mut buffer = vec![0u64; 8192];
         let mut class = FileIdBothDirectoryRestartInfo;
         loop {
             let ok = unsafe {
                 GetFileInformationByHandleEx(
-                    self.handle.raw(),
+                    scan.raw(),
                     class,
                     buffer.as_mut_ptr().cast(),
                     (buffer.len() * 8) as u32,

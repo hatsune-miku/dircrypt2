@@ -122,13 +122,16 @@ impl Handle {
         let new = component(name)?;
         #[cfg(target_os = "linux")]
         let result = unsafe {
-            libc::renameat2(
+            // Older musl releases do not export a renameat2 wrapper. The syscall
+            // is the same on glibc/musl and still provides atomic no-replacement.
+            libc::syscall(
+                libc::SYS_renameat2,
                 self.parent.as_raw_fd(),
                 old.as_ptr(),
                 destination.file.as_raw_fd(),
                 new.as_ptr(),
                 libc::RENAME_NOREPLACE,
-            )
+            ) as libc::c_int
         };
         #[cfg(target_os = "macos")]
         let result = unsafe {

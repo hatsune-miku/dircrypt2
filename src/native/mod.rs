@@ -71,8 +71,12 @@ impl Name {
         {
             use std::os::unix::ffi::OsStrExt;
             let bytes = self.0.as_bytes();
+            #[cfg(target_os = "linux")]
+            let limit = 255;
+            #[cfg(target_os = "macos")]
+            let limit = 1020; // APFS/HFS+ limits are Unicode units, not UTF-8 bytes.
             ensure!(
-                bytes.len() <= 255,
+                bytes.len() <= limit,
                 "Name exceeds this platform's component limit"
             );
             ensure!(
@@ -174,4 +178,23 @@ pub fn is_fat(fs: &str) -> bool {
 }
 pub fn stable_ids(fs: &str) -> bool {
     !is_fat(fs)
+}
+
+/// SQLite opens sidecars itself. Reject pre-existing links before giving it
+/// access to a recovery database. This is a preflight, not a Unix race lock.
+pub fn validate_database_sidecars(path: &std::path::Path) -> Result<()> {
+    for suffix in ["-journal", "-wal", "-shm"] {
+        let mut sidecar = path.as_os_str().to_owned();
+        sidecar.push(suffix);
+        match database_guard(std::path::Path::new(&sidecar), false) {
+            Ok(_) => {}
+            Err(error) if is_missing(&error) => {}
+            Err(error) => {
+                return Err(
+                    error.context("Unsafe recovery database sidecar; no SQLite changes permitted")
+                );
+            }
+        }
+    }
+    Ok(())
 }

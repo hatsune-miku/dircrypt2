@@ -1,4 +1,4 @@
-use crate::native::{DIRECTORY, FILE, Info, Name, database_guard};
+use crate::native::{DIRECTORY, FILE, Info, Name, database_guard, validate_database_sidecars};
 use anyhow::{Context, Result, ensure};
 use rusqlite::{Connection, OpenFlags, params};
 use std::{
@@ -106,6 +106,7 @@ pub struct Store {
 impl Store {
     pub fn create(path: &Path, root: Info, filesystem: String, header: bool) -> Result<Self> {
         let guard = database_guard(path, true)?;
+        validate_database_sidecars(path)?;
         let conn = Connection::open_with_flags(
             path,
             OpenFlags::SQLITE_OPEN_READ_WRITE
@@ -162,6 +163,7 @@ impl Store {
     }
     pub fn open(path: &Path, writable: bool) -> Result<Self> {
         let mut guard = database_guard(path, false)?;
+        validate_database_sidecars(path)?;
         let mut header = [0u8; 100];
         guard
             .read_exact(&mut header)

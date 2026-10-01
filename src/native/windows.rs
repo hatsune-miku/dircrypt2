@@ -441,7 +441,12 @@ pub fn database_guard(path: &Path, create: bool) -> Result<File> {
         info.is_file() && info.file_attributes() & FILE_ATTRIBUTE_REPARSE_POINT == 0,
         "Recovery database must be a regular file"
     );
-    Ok(file)
+    let handle = Handle { file };
+    ensure!(
+        handle.info()?.links == 1,
+        "Recovery database must not have shared hard links"
+    );
+    Ok(handle.file)
 }
 pub fn root_matches(actual: &Info, recorded: &Info, filesystem: &str) -> bool {
     actual.volume == recorded.volume

@@ -213,7 +213,7 @@ impl Dir {
         let mut value: libc::statfs = unsafe { std::mem::zeroed() };
         check(unsafe { libc::fstatfs(self.file.as_raw_fd(), &mut value) })?;
         #[cfg(target_os = "linux")]
-        let name = match value.f_type as u64 {
+        let name = match value.f_type {
             0xef53 => "ext",
             0x58465342 => "xfs",
             0x9123683e => "btrfs",
@@ -266,7 +266,8 @@ impl Dir {
         #[cfg(target_os = "linux")]
         let inspect_flags = libc::O_PATH | libc::O_NOFOLLOW;
         #[cfg(target_os = "macos")]
-        let inspect_flags = libc::O_EVTONLY | libc::O_SYMLINK | libc::O_NOFOLLOW;
+        // O_SYMLINK opens the link itself; O_NOFOLLOW would reject it on Darwin.
+        let inspect_flags = libc::O_EVTONLY | libc::O_SYMLINK;
         let flags = if header {
             libc::O_RDWR | libc::O_NOFOLLOW | libc::O_NONBLOCK
         } else {

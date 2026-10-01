@@ -286,6 +286,48 @@ fn database_symlink_and_directory_substitution_are_rejected() {
 }
 
 #[test]
+fn database_sidecar_links_are_rejected_before_sqlite_can_write() {
+    for suffix in ["-journal", "-wal", "-shm"] {
+        for hard_link in [false, true] {
+            let temp = TempDir::new().unwrap();
+            let root = temp.path().join("root");
+            fs::create_dir(&root).unwrap();
+            let expected = fixture(&root);
+            execute(&root, options(true)).unwrap();
+            let foreign = temp.path().join("foreign");
+            fs::write(&foreign, b"outside data must survive").unwrap();
+            let sidecar = root.join(format!("DCDATA/state.sqlite3{suffix}"));
+            if hard_link {
+                fs::hard_link(&foreign, &sidecar).unwrap();
+            } else {
+                symlink_file(&foreign, &sidecar).unwrap();
+            }
+            let before = fs::read(root.join("DCDATA/state.sqlite3")).unwrap();
+            assert!(execute(&root, options(false)).is_err());
+            assert_eq!(fs::read(&foreign).unwrap(), b"outside data must survive");
+            assert_eq!(fs::read(root.join("DCDATA/state.sqlite3")).unwrap(), before);
+            fs::remove_file(sidecar).unwrap();
+            execute(&root, options(false)).unwrap();
+            verify(&root, &expected);
+        }
+    }
+}
+
+#[test]
+#[cfg(target_os = "macos")]
+fn macos_unicode_component_can_exceed_255_utf8_bytes() {
+    let temp = TempDir::new().unwrap();
+    let name = "名".repeat(100);
+    put(temp.path(), &name, b"long Unicode name");
+    execute(temp.path(), options(false)).unwrap();
+    execute(temp.path(), options(false)).unwrap();
+    assert_eq!(
+        fs::read(temp.path().join(name)).unwrap(),
+        b"long Unicode name"
+    );
+}
+
+#[test]
 fn cancellation_retains_a_plan_and_all_original_bytes() {
     use std::sync::atomic::Ordering;
     let temp = TempDir::new().unwrap();

@@ -8,7 +8,10 @@ import tomllib
 
 
 def gh(*args, check=True):
-    return subprocess.run(["gh", *args], text=True, capture_output=True, check=check)
+    result = subprocess.run(["gh", *args], text=True, capture_output=True)
+    if check and result.returncode:
+        raise RuntimeError(f"GitHub operation failed: {result.stderr.strip()}")
+    return result
 
 
 def main():

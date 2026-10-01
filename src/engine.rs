@@ -307,11 +307,31 @@ fn plan(store: &mut Store, root: &Arc<Dir>, options: &Options, progress: &Progre
     let frame = |parent: i64, dir: Arc<Dir>| -> Result<Frame> {
         let mut entries = dir.entries()?;
         if parent == 0 {
+            #[cfg(windows)]
             entries.retain(|e| {
                 ![CONTROL, LOCK]
                     .iter()
                     .any(|n| Name::text(n).key() == e.name.key())
             });
+            #[cfg(unix)]
+            {
+                // A case-insensitive Unix volume can return different spelling for
+                // an existing lock. Exclude the actual control objects by identity
+                // as well as by name; never rename the lock held by this process.
+                let reserved = [CONTROL, LOCK].map(|name| {
+                    let handle = dir.open_item(&Name::text(name), false)?;
+                    Ok::<_, anyhow::Error>((Name::text(name).key(), handle.info()?))
+                });
+                let reserved = reserved.into_iter().collect::<Result<Vec<_>>>()?;
+                entries.retain(|e| {
+                    !reserved.iter().any(|(key, info)| {
+                        *key == e.name.key()
+                            || (info.id != 0
+                                && info.id == e.info.id
+                                && info.volume == e.info.volume)
+                    })
+                });
+            }
         }
         let partition = entries.len() >= BUCKET_THRESHOLD
             && (native::is_fat(&store.run.filesystem) || parent == 0);

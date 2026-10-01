@@ -328,6 +328,32 @@ fn macos_unicode_component_can_exceed_255_utf8_bytes() {
 }
 
 #[test]
+#[cfg(unix)]
+fn reserved_lock_case_alias_is_never_mapped_on_insensitive_volumes() {
+    let temp = TempDir::new().unwrap();
+    put(temp.path(), ".DIRCRYPT.LOCK", b"existing lock contents");
+    put(temp.path(), "payload", b"preserved data");
+    let insensitive = temp.path().join(".dircrypt.lock").exists();
+    let outcome = execute(temp.path(), options(false)).unwrap();
+    assert_eq!(outcome.files, if insensitive { 1 } else { 2 });
+    if insensitive {
+        assert_eq!(
+            fs::read(temp.path().join(".DIRCRYPT.LOCK")).unwrap(),
+            b"existing lock contents"
+        );
+    }
+    execute(temp.path(), options(false)).unwrap();
+    assert_eq!(
+        fs::read(temp.path().join(".DIRCRYPT.LOCK")).unwrap(),
+        b"existing lock contents"
+    );
+    assert_eq!(
+        fs::read(temp.path().join("payload")).unwrap(),
+        b"preserved data"
+    );
+}
+
+#[test]
 fn cancellation_retains_a_plan_and_all_original_bytes() {
     use std::sync::atomic::Ordering;
     let temp = TempDir::new().unwrap();
@@ -763,7 +789,7 @@ fn case_distinct_and_unreadable_files_map_without_reading_contents() {
     let temp = TempDir::new().unwrap();
     put(temp.path(), "Name", b"upper");
     put(temp.path(), "name", b"lower");
-    fs::set_permissions(temp.path().join("Name"), fs::Permissions::from_mode(0)).unwrap();
+    fs::set_permissions(temp.path().join("Name"), fs::Permissions::from_mode(0o000)).unwrap();
     execute(temp.path(), options(false)).unwrap();
     execute(temp.path(), options(false)).unwrap();
     assert_eq!(

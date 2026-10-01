@@ -13,7 +13,7 @@
 | 系统 | 产物 | 运行要求 |
 |---|---|---|
 | Windows AMD64 | `dircrypt2-x86_64-pc-windows-msvc.zip` | Windows 10/11 x64；静态 MSVC 运行库和 SQLite |
-| macOS ARM64 | `dircrypt2-aarch64-apple-darwin.tar.gz` | Apple Silicon，macOS 11+；未签名、未公证 |
+| macOS ARM64 | `dircrypt2-aarch64-apple-darwin.tar.gz` | Apple Silicon，macOS 11+；无 Developer ID 签名、未公证 |
 | Linux AMD64 | `dircrypt2-x86_64-unknown-linux-musl.tar.gz` | x86-64，静态 musl；需要内核/文件系统支持 `RENAME_NOREPLACE`，以及已挂载的 `/proc` |
 
 解压后直接运行，无需 Python 或外部 SQLite。macOS 下载的未公证程序可能需要在系统“隐私与安全性”中明确允许打开。

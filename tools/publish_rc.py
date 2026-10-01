@@ -40,7 +40,7 @@ def main():
     notes.write_text(
         f"Release candidate built from `{commit}`.\n\n"
         "- Windows AMD64: static MSVC runtime and SQLite.\n"
-        "- macOS ARM64: Apple Silicon, macOS 11 or later; unsigned/not notarized.\n"
+        "- macOS ARM64: Apple Silicon, macOS 11 or later; not Developer ID signed or notarized.\n"
         "- Linux AMD64: static musl executable, no system SQLite dependency.\n\n"
         "All three native test suites and cross-platform archive restoration checks passed. "
         "SHA256SUMS covers the three downloads.\n\n"

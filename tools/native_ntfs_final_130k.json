@@ -1,0 +1,52 @@
+{
+  "implementation": "Rust dircrypt 2",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "files": 130000,
+  "shape": "mixed",
+  "obfuscate": false,
+  "jobs_argument": 0,
+  "rounds": [
+    {
+      "map": {
+        "action": "mapped",
+        "files": 130000,
+        "directories": 17751,
+        "links": 0,
+        "seconds": 30.0689093,
+        "planning_seconds": 1.2351118,
+        "validation_seconds": 0.376292,
+        "file_phase_seconds": 21.2396807,
+        "directory_phase_seconds": 7.1260369,
+        "identity_worker_seconds": 4.217009500000002,
+        "rename_worker_seconds": 30.360285200000007,
+        "header_worker_seconds": 0.0,
+        "close_worker_seconds": 5.060570800000012,
+        "renamed_entries": 147751,
+        "jobs": 2,
+        "filesystem": "NTFS",
+        "process_seconds": 30.20818169999984
+      },
+      "restore": {
+        "action": "restored",
+        "files": 130000,
+        "directories": 17751,
+        "links": 0,
+        "seconds": 28.8997486,
+        "planning_seconds": 0.0,
+        "validation_seconds": 0.3624283,
+        "file_phase_seconds": 19.9777941,
+        "directory_phase_seconds": 8.3973652,
+        "identity_worker_seconds": 4.264584300000002,
+        "rename_worker_seconds": 28.11836109999998,
+        "header_worker_seconds": 0.0,
+        "close_worker_seconds": 4.502520999999997,
+        "renamed_entries": 147751,
+        "jobs": 2,
+        "filesystem": "NTFS",
+        "process_seconds": 28.92604599999686
+      },
+      "verified_files": 130000
+    }
+  ],
+  "notes": "Generated 128/8192-byte files. Fixture generation and byte verification excluded. Warm filesystem cache; no cache flush between phases."
+}

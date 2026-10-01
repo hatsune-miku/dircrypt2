@@ -1,0 +1,52 @@
+{
+  "implementation": "Rust dircrypt 2",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "files": 130000,
+  "shape": "mixed",
+  "obfuscate": false,
+  "jobs_argument": 0,
+  "rounds": [
+    {
+      "map": {
+        "action": "mapped",
+        "files": 130000,
+        "directories": 17751,
+        "links": 0,
+        "seconds": 125.0594912,
+        "planning_seconds": 4.0847533,
+        "validation_seconds": 0.3655547,
+        "file_phase_seconds": 101.4401833,
+        "directory_phase_seconds": 19.0107811,
+        "identity_worker_seconds": 2.7645174999999997,
+        "rename_worker_seconds": 30.372365600000084,
+        "header_worker_seconds": 0.0,
+        "close_worker_seconds": 64.9001652,
+        "renamed_entries": 147751,
+        "jobs": 1,
+        "filesystem": "exFAT",
+        "process_seconds": 125.08920609999768
+      },
+      "restore": {
+        "action": "restored",
+        "files": 130000,
+        "directories": 17751,
+        "links": 0,
+        "seconds": 153.4599822,
+        "planning_seconds": 0.0,
+        "validation_seconds": 0.3353033,
+        "file_phase_seconds": 126.9903043,
+        "directory_phase_seconds": 25.9870999,
+        "identity_worker_seconds": 5.222674100000009,
+        "rename_worker_seconds": 44.22358870000032,
+        "header_worker_seconds": 0.0,
+        "close_worker_seconds": 69.2016683000001,
+        "renamed_entries": 147751,
+        "jobs": 1,
+        "filesystem": "exFAT",
+        "process_seconds": 153.4863046999999
+      },
+      "verified_files": 130000
+    }
+  ],
+  "notes": "Generated 128/8192-byte files. Fixture generation and byte verification excluded. Warm filesystem cache; no cache flush between phases."
+}

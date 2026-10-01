@@ -1,0 +1,7 @@
+dircrypt.log
+test/
+__pycache__/
+.learnings/
+/target/
+/dist/
+/.dircrypt-bench-*/

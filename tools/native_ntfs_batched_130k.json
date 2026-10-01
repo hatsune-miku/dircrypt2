@@ -1,0 +1,93 @@
+{
+  "implementation": "Rust dircrypt 2",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "files": 130000,
+  "shape": "mixed",
+  "obfuscate": false,
+  "jobs_argument": 0,
+  "rounds": [
+    {
+      "map": {
+        "action": "mapped",
+        "files": 130000,
+        "directories": 17751,
+        "links": 0,
+        "seconds": 29.6159513,
+        "planning_seconds": 1.1379919,
+        "validation_seconds": 0.3754502,
+        "file_phase_seconds": 19.6637109,
+        "directory_phase_seconds": 8.3483416,
+        "identity_worker_seconds": 3.7864445999999923,
+        "rename_worker_seconds": 28.453020099999982,
+        "header_worker_seconds": 0.0,
+        "close_worker_seconds": 4.416897299999993,
+        "renamed_entries": 147751,
+        "jobs": 2,
+        "filesystem": "NTFS",
+        "process_seconds": 29.722879900000407
+      },
+      "restore": {
+        "action": "restored",
+        "files": 130000,
+        "directories": 17751,
+        "links": 0,
+        "seconds": 30.0591647,
+        "planning_seconds": 0.0,
+        "validation_seconds": 0.383916,
+        "file_phase_seconds": 20.8824726,
+        "directory_phase_seconds": 8.6550367,
+        "identity_worker_seconds": 4.429270699999999,
+        "rename_worker_seconds": 29.525663800000093,
+        "header_worker_seconds": 0.0,
+        "close_worker_seconds": 4.5097999999999905,
+        "renamed_entries": 147751,
+        "jobs": 2,
+        "filesystem": "NTFS",
+        "process_seconds": 30.079664500000945
+      },
+      "verified_files": 130000
+    },
+    {
+      "map": {
+        "action": "mapped",
+        "files": 130000,
+        "directories": 17751,
+        "links": 0,
+        "seconds": 42.1926645,
+        "planning_seconds": 1.520515,
+        "validation_seconds": 0.4773967,
+        "file_phase_seconds": 27.8263091,
+        "directory_phase_seconds": 12.2557454,
+        "identity_worker_seconds": 5.4536473999999755,
+        "rename_worker_seconds": 39.829936399999895,
+        "header_worker_seconds": 0.0,
+        "close_worker_seconds": 6.389619699999993,
+        "renamed_entries": 147751,
+        "jobs": 2,
+        "filesystem": "NTFS",
+        "process_seconds": 42.21874840000237
+      },
+      "restore": {
+        "action": "restored",
+        "files": 130000,
+        "directories": 17751,
+        "links": 0,
+        "seconds": 27.9561686,
+        "planning_seconds": 0.0,
+        "validation_seconds": 0.3786115,
+        "file_phase_seconds": 18.9953292,
+        "directory_phase_seconds": 8.4434968,
+        "identity_worker_seconds": 4.017963900000002,
+        "rename_worker_seconds": 26.83612529999987,
+        "header_worker_seconds": 0.0,
+        "close_worker_seconds": 4.148794999999993,
+        "renamed_entries": 147751,
+        "jobs": 2,
+        "filesystem": "NTFS",
+        "process_seconds": 27.983473899999808
+      },
+      "verified_files": 130000
+    }
+  ],
+  "notes": "Generated 128/8192-byte files. Fixture generation and byte verification excluded. Warm filesystem cache; no cache flush between phases."
+}
